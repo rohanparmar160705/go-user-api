@@ -1,0 +1,48 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # 1. Continuous Integration: Test the code
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    container: golang:1.23-alpine
+    steps:
+      - name: Install Git
+        run: apk add --no-cache git
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: go mod download
+
+      - name: Run Tests
+        run: go test ./... -v
+
+  # 2. Continuous Deployment: Deploy to Railway (Only on success & main branch)
+  deploy:
+    name: Deploy to Railway
+    needs: test # Wait for 'test' job to pass
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container: node:lts-alpine
+    steps:
+      - name: Install Git
+        run: apk add --no-cache git
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        run: railway up --service go-user-api --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.TOKEN1 }}

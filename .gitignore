@@ -1,0 +1,16 @@
+# Go
+/bin/
+/vendor/
+
+# Environment
+.env
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Build
+*.exe
